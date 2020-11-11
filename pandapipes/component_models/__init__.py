@@ -8,6 +8,7 @@ from pandapipes.component_models.valve_component import *
 from pandapipes.component_models.ext_grid_component import *
 from pandapipes.component_models.sink_component import *
 from pandapipes.component_models.source_component import *
+from pandapipes.component_models.tank_component import *
 from pandapipes.component_models.heat_exchanger_component import *
 from pandapipes.component_models.pump_component import *
 from pandapipes.component_models.circulation_pump_mass_component import *
