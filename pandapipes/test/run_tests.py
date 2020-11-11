@@ -38,7 +38,7 @@ def _get_test_dir(pp_module=None):
     return test_dir
 
 
-def run_tests(parallel=False, n_cpu=None, coverage=False):
+def running_tests(parallel=False, n_cpu=None, coverage=False):
     """
     Function to execute all tests or the tests in pppro_module.
 
@@ -77,4 +77,4 @@ def run_tests(parallel=False, n_cpu=None, coverage=False):
 
 
 if __name__ == "__main__":
-    run_tests()
+    running_tests()
