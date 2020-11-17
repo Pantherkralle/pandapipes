@@ -300,8 +300,10 @@ def create_storage(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None,
     # store dtypes
     dtypes = net.storage.dtypes                                                                                            # Was passiert hier? dtypes definieren?
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, bool(in_service), type]
+    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "max_m_kg", "min_m_kg", "max_mdot_kg_per_s",
+            "min_mdot_kg_per_s", "soc_percent", "controllable","in_service", "type"]
+    vals = [name, junction, mdot_kg_per_s, scaling, max_m_kg, min_m_kg, max_mdot_kg_per_s, min_mdot_kg_per_s,
+            soc_percent, bool(controllable), bool(in_service), type]
     all_values = {col: val for col, val in zip(cols, vals)}
     all_values.update(kwargs)
     for col, val in all_values.items():
