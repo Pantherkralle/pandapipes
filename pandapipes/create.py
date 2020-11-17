@@ -14,7 +14,7 @@ from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_
     load_std_type
 from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
-    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, Tank
+    HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, Storage
 
 try:
     import pplog as logging
@@ -245,25 +245,25 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_tank(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None, scaling=1., name=None, index=None,
-                in_service=True, max_mdot_kg_per_s=None, min_mdot_kg_per_s=None, controllable=True, type='tank',
-                **kwargs):
+def create_storage(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None, max_m_kg=None, scaling=1., name=None,
+                   index=None, in_service=True, max_mdot_kg_per_s=None, min_mdot_kg_per_s=None, controllable=True,
+                   type='storage', **kwargs):
     """
-    Adds one tank in table net["tank"].
+    Adds one storage in table net["storage"].
 
-    :param net: The net for which this tank should be created
+    :param net: The net for which this storage should be created
     :type net: pandapipesNet
-    :param junction: The index of the junction to which the tank is connected
+    :param junction: The index of the junction to which the storage is connected
     :type junction: int
     :param mdot_kg_per_s: Mass flow. Positive if flowing in
     :type mdot_kg_per_s: float, default None
-    :param soc_percent: The tank's current state of charge
+    :param soc_percent: The storage's current state of charge
     :type soc_percent: float, default 50
-    :param min_m_kg: Minimal tank filling required
+    :param min_m_kg: Minimal storage filling required
     :type min_m_kg: float, default None
     :param scaling: An optional scaling factor to be set customly
     :type scaling: float, default 1
-    :param name: A name tag for this tank
+    :param name: A name tag for this storage
     :type name: str, default None
     :param index: Force a specified ID if it is available. If None, the index one higher than the\
             highest already existing index is selected.
@@ -274,42 +274,41 @@ def create_tank(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None, sc
     :type max_mdot_kg_per_s: float, default None
     :param min_mdot_kg_per_s: Lowest possible outflow
     :type min_mdot_kg_per_s: float, default None
-    :param controllable: True if tank is to be considered in pipeflow optimization
+    :param controllable: True if storage is to be considered in pipeflow optimization
     :type controllable: bool, default True
-    :param type: Type variable to classify the tank
+    :param type: Type variable to classify the storage
     :type type: str, default None
-    :param kwargs: Additional keyword arguments will be added as further columns to the\
-            net["tank"] table
+    :param kwargs: Additional keyword arguments will be added as further columns to the net["storage"] table
     :return: index - The unique ID of the created element
     :rtype: int
 
     :Example:
-        >>> new_tank_id = create_tank(net, junction=2, mdot_kg_per_s=0.1)
+        >>> new_storage_id = create_storage(net, junction=2, mdot_kg_per_s=0.1)
 
     """
-    add_new_component(net, Tank)
+    add_new_component(net, Storage)
 
     if junction not in net["junction"].index.values:
         raise UserWarning("Cannot attach to junction %s, junction does not exist" % junction)
 
     if index is None:
-        index = get_free_id(net["tank"])
+        index = get_free_id(net["storage"])
 
-    if index in net["tank"].index:
-        raise UserWarning("A sink with the id %s already exists" % index)
+    if index in net["storage"].index:
+        raise UserWarning("A storage with the id %s already exists" % index)
 
     # store dtypes
-    dtypes = net.tank.dtypes                                                                                            # Was passiert hier? dtypes definieren?
+    dtypes = net.storage.dtypes                                                                                            # Was passiert hier? dtypes definieren?
 
     cols = ["name", "junction", "mdot_kg_per_s", "scaling", "in_service", "type"]
     vals = [name, junction, mdot_kg_per_s, scaling, bool(in_service), type]
     all_values = {col: val for col, val in zip(cols, vals)}
     all_values.update(kwargs)
     for col, val in all_values.items():
-        net.tank.at[index, col] = val
+        net.storage.at[index, col] = val
 
     # and preserve dtypes
-    _preserve_dtypes(net.tank, dtypes)
+    _preserve_dtypes(net.storage, dtypes)
 
     return index
 
