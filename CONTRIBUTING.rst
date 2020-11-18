@@ -152,7 +152,7 @@ Making sure you don't break anything
 If you make changes to pandapipes that you plan to submit, first make sure that all tests are still passing. You can do this locally with: ::
 
     from pandapipes.test import run_tests as run
-    run.run_tests()
+    run()
 
 
 Adding Tests for new functionality
