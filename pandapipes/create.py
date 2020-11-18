@@ -51,6 +51,7 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     add_new_component(net, ExtGrid, True)
     net['controller'] = pd.DataFrame(np.zeros(0, dtype=net['controller']), index=[])
     net['name'] = name
+    net['type'] = "pneumatic"
     if add_stdtypes:
         add_basic_std_types(net)
 
