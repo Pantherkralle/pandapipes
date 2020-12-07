@@ -44,6 +44,34 @@ def calc_pressure(m_kg, v_m3, t_k=293.15, fluid="H2", precision = 0.1):
             return p
 
 
+def calc_m_kg(p_bar, v_m3, t_k=293.15, fluid="H2", precision=0.1):
+    """
+       Calculate the gas mass contained in a gas tank with a given pressure looking up the compressibility factor Z.
+
+       INPUT:
+
+           **p_bar** (float) -  Pressure inside the gas tank (bar)
+
+           **v_m3** (float) - Tank's volume = volume of the gas (m^3)
+
+           **t_k** (float) - The gas' temperature which is assumed to be constant (Kelvin)
+
+           **fluid** (str, "H2") - gas's name
+
+       OPTIONAL:
+
+           **precision** (float, 0.01) - maximal error caused by break of calculation loop relative to final pressure
+
+       OUTPUT:
+
+           Calculated State of Charge (%), Calculated gas mass (kg)
+       """
+    r_j_per_mol_k = 8.314472                                                    # universal gas constant
+    m_kg_per_mol = calc_molar_mass(fluid) / 1000                                # calculate molar mass, convert to kg
+    z = get_z(p_bar, fluid)                                                     # calculate compressibility factor
+    return (p_bar * 100000 * m_kg_per_mol * v_m3) / (r_j_per_mol_k * t_k * z)   # calculate and return gas mass
+
+
 def get_z(p_bar, fluid):
     """
     Get compressibilty factor Z from tabled data.
