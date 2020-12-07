@@ -15,6 +15,7 @@ from pandapipes.std_types.std_type import PumpStdType, add_basic_std_types, add_
 from pandapipes.std_types.std_type_toolbox import regression_function
 from pandapipes.component_models import Junction, Sink, Source, Pump, Pipe, ExtGrid, \
     HeatExchanger, Valve, CirculationPumpPressure, CirculationPumpMass, Storage
+from pandapipes.component_models import real_gas_behaviour as rgb
 
 try:
     import pplog as logging
@@ -51,7 +52,6 @@ def create_empty_network(name="", fluid=None, add_stdtypes=True):
     add_new_component(net, ExtGrid, True)
     net['controller'] = pd.DataFrame(np.zeros(0, dtype=net['controller']), index=[])
     net['name'] = name
-    net['type'] = "pneumatic"
     if add_stdtypes:
         add_basic_std_types(net)
 
@@ -246,7 +246,7 @@ def create_source(net, junction, mdot_kg_per_s, scaling=1., name=None, index=Non
     return index
 
 
-def create_storage(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None, max_m_kg=None, scaling=1., name=None,
+def create_storage(net, junction, v_m3, max_m_kg, mdot_kg_per_s, state, min_m_kg=0., scaling=1., name=None,
                    index=None, in_service=True, max_mdot_kg_per_s=None, min_mdot_kg_per_s=None, controllable=True,
                    type='storage', **kwargs):
     """
@@ -256,10 +256,13 @@ def create_storage(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None,
     :type net: pandapipesNet
     :param junction: The index of the junction to which the storage is connected
     :type junction: int
+    :param v_m3: storage's inner volume
+    :type v_m3: float
     :param mdot_kg_per_s: Mass flow. Positive if flowing in
     :type mdot_kg_per_s: float, default None
-    :param soc_percent: The storage's current state of charge
-    :type soc_percent: float, default 50
+    :param state:   gives current state of charge, either as SoC [%] or as pressure [bar]. \
+                    First argument specifies value, second argument specifies which variable is given ("soc" or "p").
+    :type state: tuple (float, str)
     :param min_m_kg: Minimal storage filling required
     :type min_m_kg: float, default None
     :param scaling: An optional scaling factor to be set customly
@@ -298,13 +301,25 @@ def create_storage(net, junction, mdot_kg_per_s, soc_percent=50., min_m_kg=None,
     if index in net["storage"].index:
         raise UserWarning("A storage with the id %s already exists" % index)
 
+    t = net['junction'][junction, 'tfluid_k']
+
+    if state[1] == 'soc':
+        soc_percent = state[0]
+        p_bar = rgb.calc_pressure(max_m_kg-min_m_kg*soc_percent/100, v_m3, t, net["fluid"])
+    elif state[1] == 'p':
+        p_bar = state[0]
+        soc_percent = rgb.calc_m_kg(p_bar, v_m3, t, net["fluid"]) / (max_m_kg-min_m_kg) * 100
+    else:
+        raise ValueError("Second argument of parameter 'state' must be either 'soc' or 'p'")
+
+
     # store dtypes
     dtypes = net.storage.dtypes                                                                                            # Was passiert hier? dtypes definieren?
 
-    cols = ["name", "junction", "mdot_kg_per_s", "scaling", "max_m_kg", "min_m_kg", "max_mdot_kg_per_s",
-            "min_mdot_kg_per_s", "soc_percent", "controllable","in_service", "type"]
-    vals = [name, junction, mdot_kg_per_s, scaling, max_m_kg, min_m_kg, max_mdot_kg_per_s, min_mdot_kg_per_s,
-            soc_percent, bool(controllable), bool(in_service), type]
+    cols = ["name", "junction", "v_m3", "mdot_kg_per_s", "scaling", "max_m_kg", "min_m_kg", "max_mdot_kg_per_s",
+            "min_mdot_kg_per_s", "p_bar", "soc_percent", "controllable","in_service", "type"]
+    vals = [name, junction, v_m3, mdot_kg_per_s, scaling, max_m_kg, min_m_kg, max_mdot_kg_per_s, min_mdot_kg_per_s,
+            p_bar, soc_percent, bool(controllable), bool(in_service), type]
     all_values = {col: val for col, val in zip(cols, vals)}
     all_values.update(kwargs)
     for col, val in all_values.items():
