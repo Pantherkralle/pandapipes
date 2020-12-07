@@ -4,6 +4,7 @@
 
 
 import pandas as pd
+import os as os
 
 
 # points between who linear relationship is assumed, [[pressure values], [Z factor]]
@@ -147,7 +148,8 @@ class PTE:
     """
 
     def __init__(self):
-        self.df = pd.read_csv("PubChemElements_all.csv", index_col="Symbol")
+        self.df = pd.read_csv(os.path.join("component_models", "auxiliaries", "PubChemElements_all.csv"),
+                              index_col="Symbol")
 
     def lookup(self, symbol, value):
         """
